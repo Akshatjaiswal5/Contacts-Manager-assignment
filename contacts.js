@@ -9,7 +9,7 @@ let db;
 
 app.use(bodyParser.json());
 
-// Connect to the MongoDB database
+//connect to the MongoDB database
 mongodb.MongoClient.connect(
   config.mongodbUri,
   { useNewUrlParser: true },
@@ -25,11 +25,12 @@ mongodb.MongoClient.connect(
   }
 );
 
-// Middleware function to verify JWT token
+//to verify JWT token
 function authenticateJWT(req, res, next) {
   const authHeader = req.headers.authorization;
+  console.log(authHeader);
   if (authHeader) {
-    const token = authHeader.split(" ")[1];
+    const token = authHeader;
     jwt.verify(token, config.jwtSecret, (err, user) => {
       if (err) {
         return res.sendStatus(403);
@@ -42,7 +43,7 @@ function authenticateJWT(req, res, next) {
   }
 }
 
-// Route to handle requests to upload new contacts
+//upload new contacts
 app.post("/contacts", authenticateJWT, (req, res) => {
   const newContact = req.body;
   db.collection("contacts").insertOne(newContact, (err, result) => {
@@ -55,7 +56,7 @@ app.post("/contacts", authenticateJWT, (req, res) => {
   });
 });
 
-// Route to handle requests to retrieve all contacts
+//retrieve all contacts
 app.get("/contacts", authenticateJWT, (req, res) => {
   db.collection("contacts")
     .find({})
@@ -67,6 +68,14 @@ app.get("/contacts", authenticateJWT, (req, res) => {
         res.send(docs);
       }
     });
+});
+
+//generate JWT token
+app.get("/login", (req, res) => {
+  const token = JWT.sign({ id: Math.random() }, config.jwtSecret);
+  res.send({
+    token,
+  });
 });
 
 module.exports = app;
